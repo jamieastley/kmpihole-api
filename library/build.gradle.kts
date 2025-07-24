@@ -26,15 +26,19 @@ kotlin {
     linuxX64()
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                //put your multiplatform dependencies here
-            }
+        commonMain.dependencies {
+            implementation(libs.ktor.client.core)
+            implementation(libs.kotlinx.coroutines.core)
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(libs.kotlin.test)
-            }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+        androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.kotlinx.coroutines.android)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
     }
 }
@@ -74,7 +78,8 @@ mavenPublishing {
             developer {
                 id = "jamieastley"
                 name = "Jamie Astley"
-                url = "https://github.com/jamieastley"            }
+                url = "https://github.com/jamieastley"
+            }
         }
         scm {
             url = "https://github.com/jamieastley/kmpihole-api"
