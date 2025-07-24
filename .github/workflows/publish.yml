@@ -1,7 +1,9 @@
 name: Publish
 on:
-  release:
-    types: [released, prereleased]
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+*
+
 jobs:
   publish:
     name: Release build and publish
@@ -14,12 +16,27 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 21
-      - name: Publish to MavenCentral
-        run: ./gradlew publishToMavenCentral --no-configuration-cache
+
+      - name: Load secrets
+        id: load-secrets
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: false
         env:
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY_CONTENTS }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+          MAVEN_USERNAME: "op://KMP/Sonatype - User Token/username"
+          MAVEN_PASSWORD: "op://KMP/Sonatype - User Token/password"
+          SIGNING_KEY_ID: "op://KMP/Sonatype - User Token/key id"
+          SIGNING_PASSWORD: "op://KMP/Sonatype - User Token/key password"
+          GPG_KEY_CONTENTS: "op://KMP/Sonatype - User Token/GPG key/contents"
+
+      - name: Publish to MavenCentral
+        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ steps.load-secrets.outputs.MAVEN_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ steps.load-secrets.outputs.MAVEN_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ steps.load-secrets.outputs.SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ steps.load-secrets.outputs.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ steps.load-secrets.outputs.GPG_KEY_CONTENTS }}
 
