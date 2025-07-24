@@ -8,8 +8,8 @@ plugins {
     alias(libs.plugins.vanniktech.mavenPublish)
 }
 
-group = "io.github.kotlin"
-version = "1.0.0"
+group = "kmpihole-api"
+version = "0.0.1"
 
 kotlin {
     jvm()
@@ -40,7 +40,7 @@ kotlin {
 }
 
 android {
-    namespace = "org.jetbrains.kotlinx.multiplatform.library.template"
+    namespace = "dev.jamieastley.kmpihole.api"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -59,28 +59,27 @@ mavenPublishing {
     coordinates(group.toString(), "library", version.toString())
 
     pom {
-        name = "My library"
-        description = "A library."
-        inceptionYear = "2024"
-        url = "https://github.com/kotlin/multiplatform-library-template/"
+        name = "KMPiHole API"
+        description = "Multiplatform library for interacting with Pi-hole's API."
+        inceptionYear = "2025"
+        url = "https://github.com/jamieastley/kmpihole-api"
         licenses {
             license {
-                name = "XXX"
-                url = "YYY"
-                distribution = "ZZZ"
+                name = "The Apache License, Version 2.0"
+                url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                distribution = "https://www.apache.org/licenses/LICENSE-2.0.txt"
             }
         }
         developers {
             developer {
-                id = "XXX"
-                name = "YYY"
-                url = "ZZZ"
-            }
+                id = "jamieastley"
+                name = "Jamie Astley"
+                url = "https://github.com/jamieastley"            }
         }
         scm {
-            url = "XXX"
-            connection = "YYY"
-            developerConnection = "ZZZ"
+            url = "https://github.com/jamieastley/kmpihole-api"
+            connection = "scm:git:git://github.com/jamieastley/kmpihole-api.git"
+            developerConnection = "scm:git:ssh://git@github.com/jamieastley/kmpihole-api.git"
         }
     }
 }

@@ -1,4 +1,4 @@
-package io.github.kotlin.fibonacci
+package dev.jamieastley.kmpihole.api
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

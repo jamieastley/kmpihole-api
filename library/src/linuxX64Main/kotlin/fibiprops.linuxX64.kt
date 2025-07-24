@@ -1,4 +1,4 @@
-package io.github.kotlin.fibonacci
+package dev.jamieastley.kmpihole.api
 
 actual val firstElement: Int = 3
 actual val secondElement: Int = 5
