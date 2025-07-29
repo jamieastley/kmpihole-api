@@ -1,4 +1,3 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -9,7 +8,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
-group = "kmpihole-api"
+group = "dev.jamieastley"
 version = "0.0.2"
 
 kotlin {
@@ -46,7 +45,7 @@ kotlin {
 }
 
 android {
-    namespace = "dev.jamieastley.kmpihole.api"
+    namespace = "dev.jamieastley.kmpihole_api"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -58,11 +57,11 @@ android {
 }
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
 
     signAllPublications()
 
-    coordinates(group.toString(), "library", version.toString())
+    coordinates(group.toString(), "kmpihole-api", version.toString())
 
     pom {
         name = "KMPiHole API"
