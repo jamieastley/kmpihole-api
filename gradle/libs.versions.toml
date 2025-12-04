@@ -7,7 +7,7 @@ ktor = "3.2.2"
 coroutines = "1.10.2"
 serialization-json = "1.9.0"
 # Plugins
-mavenPublish = "0.34.0"
+mavenPublish = "0.35.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
