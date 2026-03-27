@@ -1,0 +1,42 @@
+name: Run tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - target: iosSimulatorArm64Test
+            os: macos-latest
+          - target: iosX64Test
+            os: macos-latest
+          - target: jvmTest
+            os: ubuntu-latest
+          - target: linuxX64Test
+            os: ubuntu-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.konan
+          key: ${{ runner.os }}-${{ hashFiles('**/.lock') }}
+
+      - name: Gradle setup
+        uses: ./.github/actions/gradle-setup
+
+      - name: Build ${{ matrix.target }} Gradle
+        run: ./gradlew ${{ matrix.target }}
