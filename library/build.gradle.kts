@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "dev.jamieastley"
-version = "0.0.3"
+version = "0.0.4"
 
 kotlin {
     jvm()
