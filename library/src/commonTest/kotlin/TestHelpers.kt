@@ -8,6 +8,9 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
+fun mockEngine(handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData): MockEngine =
+    MockEngine { request -> handler(request) }
+
 fun mockHttpClient(handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData): HttpClient =
     HttpClient(MockEngine { request -> handler(request) }) {
         install(ContentNegotiation) {

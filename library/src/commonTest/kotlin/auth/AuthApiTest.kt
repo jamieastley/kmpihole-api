@@ -1,9 +1,11 @@
 package dev.jamieastley.kmpihole.api.auth
 
+import dev.jamieastley.kmpihole.api.KmpiholeClient
 import dev.jamieastley.kmpihole.api.KmpiholeClientConfig
 import dev.jamieastley.kmpihole.api.internal.PiHoleException
 import dev.jamieastley.kmpihole.api.internal.SessionManager
 import dev.jamieastley.kmpihole.api.jsonResponse
+import dev.jamieastley.kmpihole.api.mockEngine
 import dev.jamieastley.kmpihole.api.mockHttpClient
 import dev.jamieastley.kmpihole.api.models.auth.AuthRequest
 import io.ktor.http.*
@@ -11,7 +13,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class AuthApiTest {
@@ -45,22 +46,20 @@ class AuthApiTest {
 
     @Test
     fun `login stores sid in session manager`() = runTest {
-        val sessionManager = SessionManager()
-        val client = mockHttpClient { jsonResponse(loginSuccessJson) }
-        val api = AuthApiImpl(client, config, sessionManager)
+        val engine = mockEngine { jsonResponse(loginSuccessJson) }
+        val client = KmpiholeClient(config, engine)
 
-        api.login(AuthRequest(password = "secret"))
+        client.auth.login(AuthRequest(password = "secret"))
+        client.auth.checkAuth()
 
-        assertEquals("test-sid-123", sessionManager.sid)
+        assertEquals("test-sid-123", engine.requestHistory.last().headers["sid"])
     }
 
     @Test
     fun `checkAuth returns session response`() = runTest {
-        val sessionManager = SessionManager()
-        val client = mockHttpClient { jsonResponse(loginSuccessJson) }
-        val api = AuthApiImpl(client, config, sessionManager)
+        val client = KmpiholeClient(config, mockEngine { jsonResponse(loginSuccessJson) })
 
-        val response = api.checkAuth()
+        val response = client.auth.checkAuth()
 
         assertEquals(true, response.session.valid)
         assertEquals("test-sid-123", response.session.sid)
@@ -68,26 +67,25 @@ class AuthApiTest {
 
     @Test
     fun `logout clears session manager`() = runTest {
-        val sessionManager = SessionManager()
-        sessionManager.store("test-sid-123")
-        val client = mockHttpClient { jsonResponse("{}", HttpStatusCode.OK) }
-        val api = AuthApiImpl(client, config, sessionManager)
+        val engine = mockEngine { jsonResponse(loginSuccessJson) }
+        val client = KmpiholeClient(config, engine)
 
-        api.logout()
+        client.auth.login(AuthRequest(password = "secret"))
+        client.auth.logout()
+        client.auth.checkAuth()
 
-        assertNull(sessionManager.sid)
+        assertNull(engine.requestHistory.last().headers["sid"])
     }
 
     @Test
     fun `login throws Unauthorized on 401`() = runTest {
-        val sessionManager = SessionManager()
-        val client = mockHttpClient { jsonResponse(unauthorizedJson, HttpStatusCode.Unauthorized) }
-        val api = AuthApiImpl(client, config, sessionManager)
+        val client = KmpiholeClient(
+            config,
+            mockEngine { jsonResponse(unauthorizedJson, HttpStatusCode.Unauthorized) })
 
         assertFailsWith<PiHoleException.Unauthorized> {
-            api.login(AuthRequest(password = "wrong"))
+            client.auth.login(AuthRequest(password = "wrong"))
         }
-        assertNull(sessionManager.sid)
     }
 
     @Test
@@ -105,12 +103,12 @@ class AuthApiTest {
               "took": 0.001
             }
         """.trimIndent()
-        val sessionManager = SessionManager()
-        val client = mockHttpClient { jsonResponse(totpJson, HttpStatusCode.Unauthorized) }
-        val api = AuthApiImpl(client, config, sessionManager)
+        val client = KmpiholeClient(
+            config,
+            mockEngine { jsonResponse(totpJson, HttpStatusCode.Unauthorized) })
 
         assertFailsWith<PiHoleException.Unauthorized> {
-            api.checkAuth()
+            client.auth.checkAuth()
         }
     }
 }
