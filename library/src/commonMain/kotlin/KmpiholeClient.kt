@@ -1,51 +1,61 @@
 package dev.jamieastley.kmpihole.api
 
-import dev.jamieastley.kmpihole.api.models.AuthRequest
-import dev.jamieastley.kmpihole.api.models.AuthResponse
+import dev.jamieastley.kmpihole.api.auth.AuthApi
+import dev.jamieastley.kmpihole.api.auth.AuthApiImpl
+import dev.jamieastley.kmpihole.api.internal.SessionManager
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.*
-import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.ContentType.Application.Json
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 expect fun createPlatformHttpClientEngine(): HttpClientEngine
 
-fun createDefaultHttpClient(engine: HttpClientEngine = createPlatformHttpClientEngine()): HttpClient =
-    HttpClient(engine) {
+/**
+ * Main entry point for the KMPiHole API client.
+ *
+ * Usage example:
+ * ```kotlin
+ * val client = KmpiholeClient(KmpiholeClientConfig(host = "192.168.1.1", useTls = false))
+ * client.auth.login(AuthRequest(password = "secret"))
+ * val summary = client.stats.getSummary()
+ * ```
+ */
+class KmpiholeClient(
+    clientConfig: KmpiholeClientConfig,
+    engine: HttpClientEngine = createPlatformHttpClientEngine(),
+) : KmpiholeClientApi {
+    companion object {
+        private val json = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            coerceInputValues = true
+        }
+    }
+
+    private val sessionManager = SessionManager()
+
+    private val httpClient: HttpClient = HttpClient(engine) {
         install(Logging) {
             logger = Logger.DEFAULT
-            level = LogLevel.ALL
+            level = LogLevel.HEADERS
         }
         install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-                prettyPrint = true
-            })
+            json(json)
+        }
+        install(HttpTimeout) {
+            connectTimeoutMillis = clientConfig.connectTimeoutMs
+            requestTimeoutMillis = clientConfig.requestTimeoutMs
         }
         defaultRequest {
-            contentType(Json)
+            contentType(ContentType.Application.Json)
+            sessionManager.sid?.let { headers.append("sid", it) }
         }
     }
 
-class KmpiholeClient(
-    private val baseUrl: String,
-    private val httpClient: HttpClient,
-) {
-
-    suspend fun checkAuth(): AuthResponse {
-        return httpClient.get("$baseUrl/auth").body()
-    }
-
-    suspend fun auth(authRequest: AuthRequest): AuthResponse {
-        return httpClient.post("$baseUrl/auth") {
-            setBody(authRequest)
-        }.body()
-    }
+    override val auth: AuthApi = AuthApiImpl(httpClient, clientConfig, sessionManager)
 }
