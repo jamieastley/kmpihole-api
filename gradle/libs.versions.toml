@@ -3,7 +3,7 @@ agp = "9.0.0"
 kotlin = "2.3.21"
 android-minSdk = "24"
 android-compileSdk = "36"
-ktor = "3.4.3"
+ktor = "3.5.0"
 coroutines = "1.11.0"
 serialization-json = "1.11.0"
 # Plugins
