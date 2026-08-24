@@ -2,7 +2,7 @@ name: kmpihole_dev
 services:
   pihole:
     container_name: pihole
-    image: pihole/pihole:2026.05.0
+    image: pihole/pihole:2026.07.2
     # For DHCP it is recommended to remove these ports and instead add: network_mode: "host"
     ports:
       - "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
